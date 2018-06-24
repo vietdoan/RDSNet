@@ -1,0 +1,26 @@
+{
+    "pascal":
+    {
+      "data_path": "/home/vietdoan/WorkingSpace/VOC/VOCdevkit/VOC2012/"
+    },
+  
+    "sbd":
+    {
+      "data_path": "/home/vietdoan/WorkingSpace/VOC/benchmark_RELEASE/"
+    },
+
+    "camvid":
+    {
+      "data_path": "/home/vietdoan/camvid"
+    },
+
+    "cityscapes":
+    {
+      "data_path": "/home/vietdv/cityscapes/"
+    },
+
+    "sunrgb":
+    {
+      "data_path": "/home/vietdv/image_minos/"
+    }
+  }
