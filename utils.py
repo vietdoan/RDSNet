@@ -21,7 +21,16 @@ class CrossEntropyLoss2d(nn.Module):
         return self.loss(F.log_softmax(outputs), targets)
 
 
-def _fast_hist(label_true, label_pred, n_class):
+def _fast_hist(label_true, label_pred, n_class, ignore_label):
+    n_class -= 1
+    label_true_copy = label_true.copy()
+    label_true[label_true_copy == ignore_label] = n_class
+    label_true[label_true_copy == n_class] = ignore_label
+
+    label_pred_copy = label_pred.copy()
+    label_pred[label_pred_copy == n_class] = ignore_label
+    label_pred[label_pred_copy == ignore_label] = n_class
+
     mask = (label_true >= 0) & (label_true < n_class)
     label_pred[label_pred >= n_class] = 0
     hist = np.bincount(
@@ -30,17 +39,18 @@ def _fast_hist(label_true, label_pred, n_class):
     return hist
 
 
-def scores(label_trues, label_preds, n_class):
+def scores(label_trues, label_preds, n_class, ignore_label=None):
     """Returns accuracy score evaluation result.
       - overall accuracy
       - mean accuracy
       - mean IU
       - fwavacc
     """
-    n_class -= 1
-    hist = np.zeros((n_class, n_class))
+    if ignore_label is None:
+        ignore_label = n_class - 1 # default unlabled class
+    hist = np.zeros((n_class - 1, n_class - 1))
     for lt, lp in zip(label_trues, label_preds):
-        hist += _fast_hist(lt.flatten(), lp.flatten(), n_class)
+        hist += _fast_hist(lt.flatten(), lp.flatten(), n_class - 1, ignore_label)
     acc = np.diag(hist).sum() / hist.sum()
     acc_cls = np.diag(hist) / hist.sum(axis=1)
     mean_acc_cls = np.nanmean(acc_cls)
@@ -48,7 +58,7 @@ def scores(label_trues, label_preds, n_class):
     mean_iu = np.nanmean(iu) # mean class IOU
     freq = hist.sum(axis=1) / hist.sum()
     fwavacc = (freq[freq > 0] * iu[freq > 0]).sum()
-    cls_acc = dict(zip(range(n_class), iu))
+    cls_acc = dict(zip(range(n_class - 1), iu))
 
     return {'Overall Acc: \t': acc,
             'Mean Acc : \t': mean_acc_cls,
